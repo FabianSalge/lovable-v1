@@ -6,11 +6,11 @@ import { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { MessagesContainer } from "@/components/messages/MessagesContainer";
 import { RequirementsList } from "@/components/requirements/RequirementsList";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { generatePDF } from "@/utils/pdfGenerator";
+import { SuggestionsPanel } from "@/components/suggestions/SuggestionsPanel";
 
 type Message = {
   role: "assistant" | "user";
@@ -18,6 +18,12 @@ type Message = {
 };
 
 type Requirement = {
+  id: string;
+  type: string;
+  value: string;
+};
+
+type Suggestion = {
   id: string;
   type: string;
   value: string;
@@ -35,6 +41,7 @@ const GatherRequirements = () => {
   const [input, setInput] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showPRD, setShowPRD] = useState(false);
 
   const questions = [
@@ -52,14 +59,6 @@ const GatherRequirements = () => {
     "Scope",
     "Constraints",
   ];
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const generatePRD = () => {
     const projectName = requirements.find(r => r.type === "Project Name")?.value || "Untitled Project";
@@ -101,6 +100,22 @@ ${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
     });
   };
 
+  const handleAcceptSuggestion = (suggestion: Suggestion) => {
+    setRequirements(prev => [...prev, suggestion]);
+    setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    toast({
+      title: "Suggestion Accepted",
+      description: `Added ${suggestion.type.toLowerCase()} to requirements.`,
+    });
+  };
+
+  const handleRejectSuggestion = (id: string) => {
+    setSuggestions(prev => prev.filter(s => s.id !== id));
+    toast({
+      description: "Suggestion rejected",
+    });
+  };
+
   const handleSendMessage = () => {
     if (!input.trim()) return;
 
@@ -109,12 +124,26 @@ ${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
       { role: "user" as const, content: input }
     ];
 
-    // Add requirement
     const newRequirement: Requirement = {
       id: Date.now().toString(),
       type: requirementTypes[currentStep],
       value: input,
     };
+
+    const mockSuggestions: Suggestion[] = [
+      {
+        id: `suggestion-${Date.now()}-1`,
+        type: requirementTypes[currentStep],
+        value: `Alternative: ${input} (Enhanced Version)`,
+      },
+      {
+        id: `suggestion-${Date.now()}-2`,
+        type: requirementTypes[currentStep],
+        value: `Consider: ${input} (Modified Approach)`,
+      },
+    ];
+    setSuggestions(prev => [...prev, ...mockSuggestions]);
+
     setRequirements(prev => [...prev, newRequirement]);
 
     if (currentStep < questions.length - 1) {
@@ -149,8 +178,7 @@ ${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
   const handleDeleteRequirement = (id: string) => {
     setRequirements(prev => prev.filter(req => req.id !== id));
     toast({
-      title: "Requirement Deleted",
-      description: "The requirement has been removed.",
+      description: "Requirement removed",
     });
   };
 
@@ -164,25 +192,12 @@ ${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
             </Link>
           </Button>
           <span className="text-sm font-medium">AI Requirements Gathering</span>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="secondary" size="sm">View Requirements</Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Gathered Requirements</SheetTitle>
-              </SheetHeader>
-              <RequirementsList 
-                requirements={requirements}
-                onDelete={handleDeleteRequirement}
-              />
-            </SheetContent>
-          </Sheet>
+          <div className="w-[70px]" /> {/* Spacer for alignment */}
         </nav>
       </header>
 
-      <main className="flex-1 container py-8 mt-14">
-        <Card className="max-w-2xl mx-auto glass-card border-border/40">
+      <main className="flex-1 container py-8 mt-14 flex gap-6">
+        <Card className="flex-1 glass-card border-border/40">
           <MessagesContainer 
             messages={messages}
             messagesEndRef={messagesEndRef}
@@ -207,6 +222,29 @@ ${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
             </div>
           </div>
         </Card>
+
+        <div className="w-80 space-y-6">
+          <Card className="glass-card border-border/40">
+            <div className="p-4 border-b border-border/40">
+              <h2 className="text-sm font-medium">Suggestions</h2>
+            </div>
+            <SuggestionsPanel
+              suggestions={suggestions}
+              onAccept={handleAcceptSuggestion}
+              onReject={handleRejectSuggestion}
+            />
+          </Card>
+
+          <Card className="glass-card border-border/40">
+            <div className="p-4 border-b border-border/40">
+              <h2 className="text-sm font-medium">Requirements</h2>
+            </div>
+            <RequirementsList
+              requirements={requirements}
+              onDelete={handleDeleteRequirement}
+            />
+          </Card>
+        </div>
       </main>
 
       <Dialog open={showPRD} onOpenChange={setShowPRD}>
