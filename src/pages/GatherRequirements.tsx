@@ -1,16 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Download, Send } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessagesContainer } from "@/components/messages/MessagesContainer";
 import { RequirementsList } from "@/components/requirements/RequirementsList";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { generatePDF } from "@/utils/pdfGenerator";
 import { SuggestionsPanel } from "@/components/suggestions/SuggestionsPanel";
+import { ChatInput } from "@/components/chat/ChatInput";
 
 type Message = {
   role: "assistant" | "user";
@@ -30,6 +29,7 @@ type Suggestion = {
 };
 
 const GatherRequirements = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([
@@ -59,6 +59,10 @@ const GatherRequirements = () => {
     "Scope",
     "Constraints",
   ];
+
+  const handleViewDevelopers = () => {
+    navigate("/developers");
+  };
 
   const generatePRD = () => {
     const projectName = requirements.find(r => r.type === "Project Name")?.value || "Untitled Project";
@@ -155,7 +159,7 @@ ${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
     } else if (currentStep === questions.length - 1) {
       newMessages.push({
         role: "assistant" as const,
-        content: "Thank you! I've gathered all the requirements. You can now view the generated PRD or review the requirements in the sidebar.",
+        content: "Thank you! I've gathered all the requirements. You can now view the matched developers or review the requirements in the sidebar.",
       });
       toast({
         title: "Requirements Gathered",
@@ -192,38 +196,45 @@ ${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
             </Link>
           </Button>
           <span className="text-sm font-medium">AI Requirements Gathering</span>
-          <div className="w-[70px]" /> {/* Spacer for alignment */}
+          <div className="w-[70px]" />
         </nav>
       </header>
 
       <main className="flex-1 container py-8 mt-14 flex gap-6">
-        <Card className="flex-1 glass-card border-border/40">
+        <Card className="flex-1 glass-card border-border/40 flex flex-col h-[calc(100vh-8rem)]">
           <MessagesContainer 
             messages={messages}
             messagesEndRef={messagesEndRef}
           />
-          <div className="p-4 border-t border-border/40">
-            <div className="flex gap-2">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder="Type your response..."
-                className="min-h-[80px] linear-input resize-none"
-              />
-              <Button
-                onClick={handleSendMessage}
-                className="self-end hover-scale"
-                size="icon"
-                variant="secondary"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          <ChatInput
+            input={input}
+            setInput={setInput}
+            handleSendMessage={handleSendMessage}
+            handleKeyPress={handleKeyPress}
+          />
         </Card>
 
         <div className="w-80 space-y-6">
+          <Card className="glass-card border-border/40">
+            <div className="p-4 border-b border-border/40 flex justify-between items-center">
+              <h2 className="text-sm font-medium">Requirements</h2>
+              {requirements.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleViewDevelopers}
+                  className="text-xs"
+                >
+                  View Developers
+                </Button>
+              )}
+            </div>
+            <RequirementsList
+              requirements={requirements}
+              onDelete={handleDeleteRequirement}
+            />
+          </Card>
+
           <Card className="glass-card border-border/40">
             <div className="p-4 border-b border-border/40">
               <h2 className="text-sm font-medium">Suggestions</h2>
@@ -234,39 +245,26 @@ ${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
               onReject={handleRejectSuggestion}
             />
           </Card>
-
-          <Card className="glass-card border-border/40">
-            <div className="p-4 border-b border-border/40">
-              <h2 className="text-sm font-medium">Requirements</h2>
-            </div>
-            <RequirementsList
-              requirements={requirements}
-              onDelete={handleDeleteRequirement}
-            />
-          </Card>
         </div>
       </main>
 
       <Dialog open={showPRD} onOpenChange={setShowPRD}>
         <DialogContent className="max-w-2xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Generated PRD</DialogTitle>
+            <DialogTitle>Next Steps</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="mt-4 h-full">
-            <pre className="whitespace-pre-wrap font-mono text-sm">
-              {generatePRD()}
-            </pre>
-          </ScrollArea>
-          <DialogFooter>
-            <Button
-              onClick={handleDownloadPDF}
-              className="hover-scale"
-              variant="secondary"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
-          </DialogFooter>
+          <div className="space-y-4">
+            <p>Your requirements have been gathered successfully. You can now:</p>
+            <div className="flex gap-4">
+              <Button onClick={handleViewDevelopers} className="flex-1">
+                View Matched Developers
+              </Button>
+              <Button onClick={handleDownloadPDF} variant="secondary" className="flex-1">
+                <Download className="h-4 w-4 mr-2" />
+                Download PRD
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
