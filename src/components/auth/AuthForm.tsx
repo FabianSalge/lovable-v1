@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 type UserType = "client" | "developer";
 
@@ -30,15 +31,22 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [password, setPassword] = useState("");
   const [userType, setUserType] = useState<UserType>("client");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Here you would typically integrate with your auth backend
+    localStorage.setItem("isAuthenticated", "true");
+    localStorage.setItem("userType", userType);
+    
     toast({
       title: mode === "login" ? "Logged in successfully" : "Registered successfully",
       description: `Welcome ${email}!`,
     });
+
+    // Redirect to the gather requirements page after successful auth
+    navigate("/gather");
   };
 
   return (

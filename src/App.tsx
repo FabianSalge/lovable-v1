@@ -23,6 +23,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const AuthRoute = ({ children }: { children: React.ReactNode }) => {
+  if (isAuthenticated()) {
+    return <Navigate to="/gather" replace />;
+  }
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -31,8 +38,22 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route
+            path="/login"
+            element={
+              <AuthRoute>
+                <Login />
+              </AuthRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <AuthRoute>
+                <Register />
+              </AuthRoute>
+            }
+          />
           <Route
             path="/gather"
             element={
