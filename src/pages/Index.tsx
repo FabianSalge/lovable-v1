@@ -9,11 +9,14 @@ const Index = () => {
       <header className="border-b">
         <nav className="container flex items-center justify-between h-16">
           <span className="text-xl font-semibold">Requirements.ai</span>
-          <Button variant="ghost" asChild>
-            <Link to="/gather" className="font-medium">
-              Start Gathering
-            </Link>
-          </Button>
+          <div className="space-x-4">
+            <Button variant="ghost" asChild>
+              <Link to="/login">Login</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/register">Register</Link>
+            </Button>
+          </div>
         </nav>
       </header>
 
