@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { MessagesContainer } from "@/components/messages/MessagesContainer";
 import { RequirementsList } from "@/components/requirements/RequirementsList";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type Message = {
   role: "assistant" | "user";
@@ -27,13 +28,14 @@ const GatherRequirements = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
-      role: "assistant",
+      role: "assistant" as const,
       content: "Hi! I'll help you gather requirements for your project. Let's start with the basics - what's the name of your project?",
     },
   ]);
   const [input, setInput] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [showPRD, setShowPRD] = useState(false);
 
   const questions = [
     "What's the name of your project?",
@@ -58,6 +60,35 @@ const GatherRequirements = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const generatePRD = () => {
+    const projectName = requirements.find(r => r.type === "Project Name")?.value || "Untitled Project";
+    const clientName = requirements.find(r => r.type === "Client Name")?.value || "Unknown Client";
+    const objectives = requirements.find(r => r.type === "Objectives")?.value || "No objectives specified";
+    const scope = requirements.find(r => r.type === "Scope")?.value || "No scope specified";
+    const constraints = requirements.find(r => r.type === "Constraints")?.value || "No constraints specified";
+
+    return `
+# Product Requirements Document
+
+## Project Overview
+**Project Name:** ${projectName}
+**Client:** ${clientName}
+**Date:** ${new Date().toLocaleDateString()}
+
+## Project Objectives
+${objectives}
+
+## Scope
+${scope}
+
+## Constraints and Limitations
+${constraints}
+
+## Requirements Summary
+${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
+    `.trim();
+  };
 
   const handleSendMessage = () => {
     if (!input.trim()) return;
@@ -84,12 +115,13 @@ const GatherRequirements = () => {
     } else if (currentStep === questions.length - 1) {
       newMessages.push({
         role: "assistant" as const,
-        content: "Thank you! I've gathered all the requirements. You can review them in the sidebar.",
+        content: "Thank you! I've gathered all the requirements. You can now view the generated PRD or review the requirements in the sidebar.",
       });
       toast({
         title: "Requirements Gathered",
         description: "All requirements have been successfully collected.",
       });
+      setShowPRD(true);
     }
 
     setMessages(newMessages);
@@ -165,6 +197,19 @@ const GatherRequirements = () => {
           </div>
         </Card>
       </main>
+
+      <Dialog open={showPRD} onOpenChange={setShowPRD}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Generated PRD</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="mt-4 h-full">
+            <pre className="whitespace-pre-wrap font-mono text-sm">
+              {generatePRD()}
+            </pre>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
