@@ -31,11 +31,13 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased min-h-screen;
+    background: linear-gradient(to bottom, hsl(240 10% 3.9%), hsl(240 12% 8%));
   }
 
   .glass-card {
     @apply bg-secondary/30 backdrop-blur-sm border border-border/50 shadow-sm;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
   }
 
   .animate-in {
@@ -48,6 +50,7 @@
 
   .linear-input {
     @apply bg-secondary/30 border-0 focus-visible:ring-1 focus-visible:ring-primary/20 placeholder:text-muted-foreground/50;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02));
   }
 
   .message-bubble {
@@ -56,10 +59,12 @@
 
   .message-bubble-assistant {
     @apply bg-secondary/30 text-foreground;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02));
   }
 
   .message-bubble-user {
     @apply bg-primary text-primary-foreground;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.08));
   }
 }
 
