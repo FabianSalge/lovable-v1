@@ -41,8 +41,11 @@ const GatherRequirements = () => {
   const handleSendMessage = () => {
     if (!input.trim()) return;
 
-    // Add user message
-    const newMessages = [...messages, { role: "user", content: input }];
+    // Add user message with explicit typing
+    const newMessages: Message[] = [
+      ...messages,
+      { role: "user" as const, content: input }
+    ];
 
     // Update requirements based on current step
     const updatedRequirements = { ...requirements };
@@ -68,14 +71,14 @@ const GatherRequirements = () => {
     // Move to next question if available
     if (currentStep < questions.length - 1) {
       newMessages.push({
-        role: "assistant",
+        role: "assistant" as const,
         content: questions[currentStep + 1],
       });
       setCurrentStep(currentStep + 1);
     } else if (currentStep === questions.length - 1) {
       // Final message
       newMessages.push({
-        role: "assistant",
+        role: "assistant" as const,
         content: "Thank you! I've gathered all the requirements. You can review them in the summary that will be generated.",
       });
       toast({
