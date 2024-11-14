@@ -2,10 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Send } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Message = {
   role: "assistant" | "user";
@@ -14,6 +15,7 @@ type Message = {
 
 const GatherRequirements = () => {
   const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -38,16 +40,22 @@ const GatherRequirements = () => {
     "Finally, what are the key constraints or limitations we should be aware of?",
   ];
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   const handleSendMessage = () => {
     if (!input.trim()) return;
 
-    // Add user message with explicit typing
     const newMessages: Message[] = [
       ...messages,
       { role: "user" as const, content: input }
     ];
 
-    // Update requirements based on current step
     const updatedRequirements = { ...requirements };
     switch (currentStep) {
       case 0:
@@ -68,7 +76,6 @@ const GatherRequirements = () => {
     }
     setRequirements(updatedRequirements);
 
-    // Move to next question if available
     if (currentStep < questions.length - 1) {
       newMessages.push({
         role: "assistant" as const,
@@ -76,7 +83,6 @@ const GatherRequirements = () => {
       });
       setCurrentStep(currentStep + 1);
     } else if (currentStep === questions.length - 1) {
-      // Final message
       newMessages.push({
         role: "assistant" as const,
         content: "Thank you! I've gathered all the requirements. You can review them in the summary that will be generated.",
@@ -114,28 +120,31 @@ const GatherRequirements = () => {
       <main className="flex-1 container py-8">
         <Card className="max-w-2xl mx-auto p-6 glass-card">
           <div className="space-y-4">
-            <div className="h-[400px] overflow-y-auto space-y-4 mb-4">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={cn(
-                    "flex",
-                    message.role === "assistant" ? "justify-start" : "justify-end"
-                  )}
-                >
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-4">
+                {messages.map((message, index) => (
                   <div
+                    key={index}
                     className={cn(
-                      "max-w-[80%] rounded-lg p-4",
-                      message.role === "assistant"
-                        ? "bg-secondary/10"
-                        : "bg-primary text-primary-foreground"
+                      "flex animate-fade-in",
+                      message.role === "assistant" ? "justify-start" : "justify-end"
                     )}
                   >
-                    {message.content}
+                    <div
+                      className={cn(
+                        "max-w-[80%] rounded-lg p-4 animate-fade-in-scale",
+                        message.role === "assistant"
+                          ? "bg-secondary/10"
+                          : "bg-primary text-primary-foreground"
+                      )}
+                    >
+                      {message.content}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
 
             <div className="flex gap-2">
               <Textarea
