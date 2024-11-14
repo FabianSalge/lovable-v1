@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { MessagesContainer } from "@/components/messages/MessagesContainer";
+import { RequirementsList } from "@/components/requirements/RequirementsList";
 
 type Message = {
   role: "assistant" | "user";
@@ -110,92 +112,52 @@ const GatherRequirements = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b">
-        <nav className="container flex items-center justify-between h-16">
-          <Button variant="ghost" asChild>
+    <div className="min-h-screen flex flex-col bg-background">
+      <header className="border-b border-border/40 backdrop-blur-sm bg-background/80 fixed top-0 w-full z-50">
+        <nav className="container flex items-center justify-between h-14">
+          <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
             <Link to="/" className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" /> Back
             </Link>
           </Button>
-          <span className="text-xl font-semibold">AI Requirements Gathering</span>
+          <span className="text-sm font-medium">AI Requirements Gathering</span>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline">View Requirements</Button>
+              <Button variant="secondary" size="sm">View Requirements</Button>
             </SheetTrigger>
             <SheetContent>
               <SheetHeader>
                 <SheetTitle>Gathered Requirements</SheetTitle>
               </SheetHeader>
-              <ScrollArea className="h-[calc(100vh-8rem)] mt-4">
-                <div className="space-y-4">
-                  {requirements.map((req) => (
-                    <div
-                      key={req.id}
-                      className="p-4 rounded-lg border bg-card relative group animate-fade-in"
-                    >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleDeleteRequirement(req.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                      <h3 className="font-medium text-sm text-muted-foreground">
-                        {req.type}
-                      </h3>
-                      <p className="mt-1">{req.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
+              <RequirementsList 
+                requirements={requirements}
+                onDelete={handleDeleteRequirement}
+              />
             </SheetContent>
           </Sheet>
         </nav>
       </header>
 
-      <main className="flex-1 container py-8">
-        <Card className="max-w-2xl mx-auto p-6 glass-card">
-          <div className="space-y-4">
-            <ScrollArea className="h-[400px] pr-4">
-              <div className="space-y-4">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={cn(
-                      "flex animate-fade-in",
-                      message.role === "assistant" ? "justify-start" : "justify-end"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "max-w-[80%] rounded-lg p-4 animate-fade-in-scale",
-                        message.role === "assistant"
-                          ? "bg-secondary/10"
-                          : "bg-primary text-primary-foreground"
-                      )}
-                    >
-                      {message.content}
-                    </div>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
-
+      <main className="flex-1 container py-8 mt-14">
+        <Card className="max-w-2xl mx-auto glass-card border-border/40">
+          <MessagesContainer 
+            messages={messages}
+            messagesEndRef={messagesEndRef}
+          />
+          <div className="p-4 border-t border-border/40">
             <div className="flex gap-2">
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Type your response..."
-                className="min-h-[80px]"
+                className="min-h-[80px] linear-input resize-none"
               />
               <Button
                 onClick={handleSendMessage}
                 className="self-end hover-scale"
                 size="icon"
+                variant="secondary"
               >
                 <Send className="h-4 w-4" />
               </Button>
