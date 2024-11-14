@@ -6,21 +6,48 @@ import { DeveloperCard } from "@/components/developers/DeveloperCard";
 const mockDevelopers = [
   {
     name: "Alex Chen",
-    skills: ["React", "TypeScript", "Node.js"],
+    pastProjects: [
+      {
+        name: "E-commerce Platform",
+        description: "Built a scalable e-commerce platform with real-time inventory management"
+      },
+      {
+        name: "Healthcare Dashboard",
+        description: "Developed analytics dashboard for patient data visualization"
+      }
+    ],
     rating: 4.8,
     matchScore: 95,
     profileUrl: "#",
   },
   {
     name: "Sarah Johnson",
-    skills: ["React", "Python", "AWS"],
+    pastProjects: [
+      {
+        name: "Social Media App",
+        description: "Created a social networking platform with real-time messaging"
+      },
+      {
+        name: "Project Management Tool",
+        description: "Developed a collaborative project management solution"
+      }
+    ],
     rating: 4.9,
     matchScore: 90,
     profileUrl: "#",
   },
   {
     name: "Michael Brown",
-    skills: ["React", "Java", "Spring"],
+    pastProjects: [
+      {
+        name: "Financial Analytics Platform",
+        description: "Built a real-time financial data analysis platform"
+      },
+      {
+        name: "Educational Learning System",
+        description: "Developed an interactive online learning platform"
+      }
+    ],
     rating: 4.7,
     matchScore: 85,
     profileUrl: "#",

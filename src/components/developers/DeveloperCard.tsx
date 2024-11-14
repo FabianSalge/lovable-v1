@@ -5,7 +5,10 @@ import { ExternalLink, Star } from "lucide-react";
 interface DeveloperCardProps {
   developer: {
     name: string;
-    skills: string[];
+    pastProjects: Array<{
+      name: string;
+      description: string;
+    }>;
     rating: number;
     matchScore: number;
     profileUrl: string;
@@ -23,14 +26,15 @@ export const DeveloperCard = ({ developer }: DeveloperCardProps) => {
         </div>
       </div>
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
-          {developer.skills.map((skill) => (
-            <span
-              key={skill}
-              className="px-2 py-1 rounded-full text-xs bg-secondary/50"
+        <div className="space-y-2">
+          {developer.pastProjects.map((project) => (
+            <div
+              key={project.name}
+              className="p-2 rounded-lg bg-secondary/30 hover:bg-secondary/40 transition-colors"
             >
-              {skill}
-            </span>
+              <h4 className="font-medium text-sm">{project.name}</h4>
+              <p className="text-xs text-muted-foreground">{project.description}</p>
+            </div>
           ))}
         </div>
         <div className="flex justify-between items-center">
