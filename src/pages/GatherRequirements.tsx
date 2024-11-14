@@ -1,16 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 type Message = {
   role: "assistant" | "user";
   content: string;
+};
+
+type Requirement = {
+  id: string;
+  type: string;
+  value: string;
 };
 
 const GatherRequirements = () => {
@@ -24,13 +31,7 @@ const GatherRequirements = () => {
   ]);
   const [input, setInput] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
-  const [requirements, setRequirements] = useState({
-    projectName: "",
-    clientName: "",
-    objectives: "",
-    scope: "",
-    constraints: "",
-  });
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
 
   const questions = [
     "What's the name of your project?",
@@ -38,6 +39,14 @@ const GatherRequirements = () => {
     "Could you tell me about the main objectives of this project?",
     "What's included in the scope of this project?",
     "Finally, what are the key constraints or limitations we should be aware of?",
+  ];
+
+  const requirementTypes = [
+    "Project Name",
+    "Client Name",
+    "Objectives",
+    "Scope",
+    "Constraints",
   ];
 
   const scrollToBottom = () => {
@@ -56,25 +65,13 @@ const GatherRequirements = () => {
       { role: "user" as const, content: input }
     ];
 
-    const updatedRequirements = { ...requirements };
-    switch (currentStep) {
-      case 0:
-        updatedRequirements.projectName = input;
-        break;
-      case 1:
-        updatedRequirements.clientName = input;
-        break;
-      case 2:
-        updatedRequirements.objectives = input;
-        break;
-      case 3:
-        updatedRequirements.scope = input;
-        break;
-      case 4:
-        updatedRequirements.constraints = input;
-        break;
-    }
-    setRequirements(updatedRequirements);
+    // Add requirement
+    const newRequirement: Requirement = {
+      id: Date.now().toString(),
+      type: requirementTypes[currentStep],
+      value: input,
+    };
+    setRequirements(prev => [...prev, newRequirement]);
 
     if (currentStep < questions.length - 1) {
       newMessages.push({
@@ -85,7 +82,7 @@ const GatherRequirements = () => {
     } else if (currentStep === questions.length - 1) {
       newMessages.push({
         role: "assistant" as const,
-        content: "Thank you! I've gathered all the requirements. You can review them in the summary that will be generated.",
+        content: "Thank you! I've gathered all the requirements. You can review them in the sidebar.",
       });
       toast({
         title: "Requirements Gathered",
@@ -104,6 +101,14 @@ const GatherRequirements = () => {
     }
   };
 
+  const handleDeleteRequirement = (id: string) => {
+    setRequirements(prev => prev.filter(req => req.id !== id));
+    toast({
+      title: "Requirement Deleted",
+      description: "The requirement has been removed.",
+    });
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b">
@@ -114,6 +119,39 @@ const GatherRequirements = () => {
             </Link>
           </Button>
           <span className="text-xl font-semibold">AI Requirements Gathering</span>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline">View Requirements</Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Gathered Requirements</SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="h-[calc(100vh-8rem)] mt-4">
+                <div className="space-y-4">
+                  {requirements.map((req) => (
+                    <div
+                      key={req.id}
+                      className="p-4 rounded-lg border bg-card relative group animate-fade-in"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handleDeleteRequirement(req.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <h3 className="font-medium text-sm text-muted-foreground">
+                        {req.type}
+                      </h3>
+                      <p className="mt-1">{req.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
         </nav>
       </header>
 
