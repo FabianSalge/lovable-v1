@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Send, X } from "lucide-react";
+import { ArrowLeft, Download, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { MessagesContainer } from "@/components/messages/MessagesContainer";
 import { RequirementsList } from "@/components/requirements/RequirementsList";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { generatePDF } from "@/utils/pdfGenerator";
 
 type Message = {
   role: "assistant" | "user";
@@ -88,6 +88,17 @@ ${constraints}
 ## Requirements Summary
 ${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
     `.trim();
+  };
+
+  const handleDownloadPDF = () => {
+    const content = generatePRD();
+    const pdf = generatePDF(content);
+    pdf.save('requirements-document.pdf');
+    
+    toast({
+      title: "PDF Generated",
+      description: "Your PRD has been downloaded successfully.",
+    });
   };
 
   const handleSendMessage = () => {
@@ -208,6 +219,16 @@ ${requirements.map(req => `- **${req.type}:** ${req.value}`).join('\n')}
               {generatePRD()}
             </pre>
           </ScrollArea>
+          <DialogFooter>
+            <Button
+              onClick={handleDownloadPDF}
+              className="hover-scale"
+              variant="secondary"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download PDF
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
